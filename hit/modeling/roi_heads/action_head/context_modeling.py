@@ -12,7 +12,7 @@ class ContextMashing(nn.Module):
         super(ContextMashing, self).__init__()
 
         self.hidden_dim = hidden_dim
-        self.conv1 = nn.Conv3d(reduce_dim * 2, hidden_dim, 1, bias=False)
+        self.conv1 = nn.Conv3d(in_channels=reduce_dim * 2, out_channels=hidden_dim, kernel_size=1, bias=False)
 
         # down-sampling
         assert downsample in ['none', 'max2x2']

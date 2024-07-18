@@ -1,7 +1,6 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 
-#include <THC/THC.h>
 #include <THC/THCAtomics.cuh>
 #include <THC/THCDeviceUtils.cuh>
 
@@ -274,11 +273,11 @@ at::Tensor ROIAlign3d_forward_cuda(const at::Tensor& input,
   auto output_size = num_rois * length * pooled_height * pooled_width * channels;
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  dim3 grid(std::min(THCCeilDiv(output_size, 512L), 4096L));
+  dim3 grid(std::min(((int)output_size + 512 -1) / 512, 4096));
   dim3 block(512);
 
   if (output.numel() == 0) {
-    THCudaCheck(cudaGetLastError());
+    AT_CUDA_CHECK(cudaGetLastError());
     return output;
   }
 
@@ -297,7 +296,7 @@ at::Tensor ROIAlign3d_forward_cuda(const at::Tensor& input,
          rois.contiguous().data_ptr<scalar_t>(),
          output.data_ptr<scalar_t>());
   });
-  THCudaCheck(cudaGetLastError());
+  AT_CUDA_CHECK(cudaGetLastError());
   return output;
 }
 
@@ -321,12 +320,12 @@ at::Tensor ROIAlign3d_backward_cuda(const at::Tensor& grad,
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  dim3 grid(std::min(THCCeilDiv(grad.numel(), 512L), 4096L));
+  dim3 grid(std::min(((int)(grad.numel()) + 512 -1) / 512, 4096));
   dim3 block(512);
 
   // handle possibly empty gradients
   if (grad.numel() == 0) {
-    THCudaCheck(cudaGetLastError());
+    AT_CUDA_CHECK(cudaGetLastError());
     return grad_input;
   }
 
@@ -346,6 +345,6 @@ at::Tensor ROIAlign3d_backward_cuda(const at::Tensor& grad,
          grad_input.data_ptr<scalar_t>(),
          rois.contiguous().data_ptr<scalar_t>());
   });
-  THCudaCheck(cudaGetLastError());
+  AT_CUDA_CHECK(cudaGetLastError());
   return grad_input;
 }

@@ -4,7 +4,6 @@
 #include <ATen/ATen.h>
 #include <ATen/cuda/CUDAContext.h>
 
-#include <THC/THC.h>
 #include <THC/THCAtomics.cuh>
 #include <THC/THCDeviceUtils.cuh>
 
@@ -145,11 +144,11 @@ std::tuple<at::Tensor, at::Tensor> SoftmaxFocalLoss_forward_cuda(
   auto P = at::empty({num_samples, num_classes}, logits.options());
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  dim3 grid(std::min(THCCeilDiv(losses_size, 512L), 4096L));
+  dim3 grid(std::min(((int)losses_size + 512 - 1 ) / 512, 4096));
   dim3 block(512);
 
   if (losses.numel() == 0) {
-    THCudaCheck(cudaGetLastError());
+    AT_CUDA_CHECK(cudaGetLastError());
     return std::make_tuple(losses, P);
   }
 
@@ -171,7 +170,7 @@ std::tuple<at::Tensor, at::Tensor> SoftmaxFocalLoss_forward_cuda(
       alpha,
       losses.data_ptr<scalar_t>());
   });
-  THCudaCheck(cudaGetLastError());
+  AT_CUDA_CHECK(cudaGetLastError());
   return std::make_tuple(losses, P);
 }
 
@@ -201,12 +200,12 @@ at::Tensor SoftmaxFocalLoss_backward_cuda(
   auto d_logits_size = static_cast<long>(num_samples) * num_classes;
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  dim3 grid1(std::min(THCCeilDiv(buff_size, 512L), 4096L));
-  dim3 grid2(std::min(THCCeilDiv(d_logits_size, 512L), 4096L));
+  dim3 grid1(std::min(((int)buff_size + 512 - 1 ) / 512, 4096));
+  dim3 grid2(std::min(((int)d_logits_size + 512 - 1) / 512, 4096));
   dim3 block(512);
 
   if (d_logits.numel() == 0) {
-    THCudaCheck(cudaGetLastError());
+    AT_CUDA_CHECK(cudaGetLastError());
     return d_logits;
   }
 
@@ -234,6 +233,6 @@ at::Tensor SoftmaxFocalLoss_backward_cuda(
       d_logits.data_ptr<scalar_t>());
   });
 
-  THCudaCheck(cudaGetLastError());
+  AT_CUDA_CHECK(cudaGetLastError());
   return d_logits;
 }

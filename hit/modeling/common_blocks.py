@@ -1,12 +1,13 @@
 import torch.nn as nn
-from hit.modeling.nonlocal_block import NLBlock
+
 from hit.layers import FrozenBatchNorm3d
+from hit.modeling.nonlocal_block import NLBlock
 
 
 class Conv3dBN(nn.Module):
     def __init__(self, cfg, dim_in, dim_out, kernels, stride, padding, dilation=1, init_weight=None):
         super(Conv3dBN, self).__init__()
-        self.conv = nn.Conv3d(dim_in, dim_out, kernels, stride=stride,
+        self.conv = nn.Conv3d(in_channels=dim_in, out_channels=dim_out, kernel_size=kernels, stride=stride,
                               padding=padding, dilation=dilation, bias=False)
         nn.init.kaiming_normal_(self.conv.weight)
         if cfg.MODEL.BACKBONE.FROZEN_BN:

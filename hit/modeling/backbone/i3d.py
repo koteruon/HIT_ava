@@ -2,6 +2,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import torch.nn as nn
+
 from hit.layers import FrozenBatchNorm3d
 from hit.modeling.common_blocks import ResNLBlock
 
@@ -81,7 +82,7 @@ class I3D(nn.Module):
         self.c2_mapping = None
 
         data_dim = 3
-        self.conv1 = nn.Conv3d(data_dim, conv_dims[0], (1 + use_temp_convs_set[0][0] * 2, 7, 7),
+        self.conv1 = nn.Conv3d(in_channels=data_dim, out_channels=conv_dims[0], kernel_size=(1 + use_temp_convs_set[0][0] * 2, 7, 7),
                                stride=(temp_strides_set[0][0], 2, 2),
                                padding=(use_temp_convs_set[0][0], 3, 3), bias=False)
         nn.init.kaiming_normal_(self.conv1.weight)

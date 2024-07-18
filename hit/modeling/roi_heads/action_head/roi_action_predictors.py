@@ -1,4 +1,5 @@
 from torch import nn
+
 from hit.modeling import registry
 
 
@@ -11,7 +12,7 @@ class FCPredictor(nn.Module):
 
         dropout_rate = config.MODEL.ROI_ACTION_HEAD.DROPOUT_RATE
         if dropout_rate > 0:
-            self.dropout = nn.Dropout(p=dropout_rate, inplace=True)
+            self.dropout = nn.Dropout(p=dropout_rate, inplace=False)
 
         self.cls_score = nn.Linear(config.MODEL.HIT_STRUCTURE.DIM_INNER, num_classes)
 
